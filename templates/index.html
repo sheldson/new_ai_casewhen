@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASE WHEN 语句生成器</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.1/dist/handsontable.full.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/handsontable@11.0.1/dist/handsontable.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="mb-4">CASE WHEN 语句生成器</h1>
+
+        <div class="card mb-4">
+            <div class="card-header">手动录入映射关系</div>
+            <div class="card-body">
+                <div id="example" class="hot"></div>
+                <button type="button" class="btn btn-secondary mt-3" onclick="addRow()">添加行</button>
+                <button type="button" class="btn btn-primary mt-3" onclick="generateCaseWhen('table')">生成 CASE WHEN 语句</button>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">上传映射关系表</div>
+            <div class="card-body">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv">
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="generateCaseWhen('upload')">生成 CASE WHEN 语句</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">手动录入映射关系字符串</div>
+            <div class="card-body">
+                <form id="pasteForm">
+                    <div class="form-group">
+                        <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg.苹果:1,香蕉:2"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="generateCaseWhen('paste')">生成 CASE WHEN 语句</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">生成的 CASE WHEN 语句</div>
+            <div class="card-body">
+                <textarea id="output" class="form-control" rows="10" readonly></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const container = document.getElementById('example');
+        const hot = new Handsontable(container, {
+            data: [['', ''], ['', ''], ['', '']],
+            colHeaders: ['Content Type', 'Description'],
+            rowHeaders: true,
+            minSpareRows: 1,
+            contextMenu: true,
+            columns: [
+                { type: 'text' },
+                { type: 'text' }
+            ]
+        });
+
+        function addRow() {
+            hot.alter('insert_row', hot.countRows());
+        }
+
+        async function generateCaseWhen(type) {
+            let input;
+            if (type === 'table') {
+                input = hot.getData();
+            } else if (type === 'upload') {
+                const file = document.getElementById('uploadFile').files[0];
+                input = await readFile(file);
+            } else if (type === 'paste') {
+                input = document.getElementById('pasteInput').value;
+            }
+
+            const response = await fetch('/generate-case-when', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ input: input, type: type })
+            });
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder("utf-8");
+            document.getElementById('output').value = '';  // Clear the output field
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                const chunk = decoder.decode(value, { stream: true });
+                document.getElementById('output').value += chunk;
+            }
+        }
+
+        function readFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const data = new Uint8Array(event.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheetName = workbook.SheetNames[0];
+                    const worksheet = workbook.Sheets[firstSheetName];
+                    const json = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    resolve(json);
+                };
+                reader.onerror = reject;
+                reader.readAsArrayBuffer(file);
+            });
+        }
+    </script>
+</body>
+</html>
+
