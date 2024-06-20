@@ -11,6 +11,11 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@11.0.1/dist/handsontable.full.min.css">
     <script src="https://cdn.jsdelivr.net/npm/handsontable@11.0.1/dist/handsontable.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Vercel Analytics -->
+    <script>
+        window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
     <div class="container mt-5">
@@ -21,7 +26,7 @@
             <div class="card-body">
                 <div class="form-group">
                     <label for="fieldInput">字段名称</label>
-                    <input type="text" id="fieldInput" class="form-control" placeholder="Enter field name">
+                    <input type="text" id="fieldInput" class="form-control" placeholder="请输入字段名">
                 </div>
                 <div id="example" class="hot"></div>
                 <button type="button" class="btn btn-secondary mt-3" onclick="addRow()">添加行</button>
@@ -35,7 +40,7 @@
                 <form id="uploadForm">
                     <div class="form-group">
                         <label for="uploadFieldInput">字段名称</label>
-                        <input type="text" id="uploadFieldInput" class="form-control" placeholder="Enter field name">
+                        <input type="text" id="uploadFieldInput" class="form-control" placeholder="请输入字段名">
                     </div>
                     <div class="form-group">
                         <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv">
@@ -51,7 +56,7 @@
                 <form id="pasteForm">
                     <div class="form-group">
                         <label for="pasteFieldInput">字段名称</label>
-                        <input type="text" id="pasteFieldInput" class="form-control" placeholder="Enter field name">
+                        <input type="text" id="pasteFieldInput" class="form-control" placeholder="请输入字段名">
                     </div>
                     <div class="form-group">
                         <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg. 苹果:1, 香蕉:2"></textarea>
@@ -73,7 +78,7 @@
         const container = document.getElementById('example');
         const hot = new Handsontable(container, {
             data: [['', ''], ['', ''], ['', '']],
-            colHeaders: ['Content Type', 'Description'],
+            colHeaders: ['映射前的值', '映射后的值'],
             rowHeaders: true,
             minSpareRows: 1,
             contextMenu: true,
