@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CASE WHEN 语句生成器</title>
+    <title>CASE WHEN 语句生成器 | SQL Case When Generator</title>
+    <meta name="description" content="使用我们的网站轻松生成 SQL CASE WHEN 语句。支持手动输入、上传文件和字符串粘贴等多种方式。">
+    <meta name="keywords" content="SQL, CASE WHEN, 语句生成器, SQL生成器, 数据库, SQL工具">
+    <meta name="author" content="sheldson@gmail.com">
+    <link rel="canonical" href="https://www.aitosql.com/">
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
@@ -16,6 +20,8 @@
         window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
     </script>
     <script defer src="/_vercel/insights/script.js"></script>
+    <!-- Favicon -->
+    <link rel="icon" href="/path/to/your/favicon.ico" type="image/x-icon">
 </head>
 <body>
     <div class="container mt-5">
@@ -70,6 +76,7 @@
             <div class="card-header">生成的 CASE WHEN 语句</div>
             <div class="card-body">
                 <textarea id="output" class="form-control" rows="10" readonly></textarea>
+                <button id="copyButton" type="button" class="btn btn-success mt-3" onclick="copyOutput()">复制回答</button>
             </div>
         </div>
     </div>
@@ -141,6 +148,18 @@
                 reader.onerror = reject;
                 reader.readAsArrayBuffer(file);
             });
+        }
+
+        function copyOutput() {
+            const output = document.getElementById('output');
+            output.select();
+            output.setSelectionRange(0, 99999); // For mobile devices
+            document.execCommand('copy');
+            const copyButton = document.getElementById('copyButton');
+            copyButton.innerText = '复制成功';
+            setTimeout(() => {
+                copyButton.innerText = '复制回答';
+            }, 2000);
         }
     </script>
 </body>
