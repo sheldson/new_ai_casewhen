@@ -22,53 +22,96 @@
     <script defer src="/_vercel/insights/script.js"></script>
     <!-- Favicon -->
     <link rel="icon" href="/path/to/your/favicon.ico" type="image/x-icon">
+    <style>
+        .tab {
+            overflow: hidden;
+            border-bottom: 1px solid #ccc;
+        }
+        .tab button {
+            background-color: inherit;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+        }
+        .tab button:hover {
+            background-color: #ddd;
+        }
+        .tab button.active {
+            background-color: #ccc;
+        }
+        .tabcontent {
+            display: none;
+            padding: 6px 12px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .hot {
+            width: 100%;
+            height: 150px;
+            overflow: hidden;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-5">
         <h1 class="mb-4">CASE WHEN 语句生成器</h1>
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'manual')">在线表格录入</button>
+            <button class="tablinks" onclick="openTab(event, 'upload')">上传映射文件表</button>
+            <button class="tablinks" onclick="openTab(event, 'paste')">直接输入映射关系</button>
+        </div>
 
-        <div class="card mb-4">
-            <div class="card-header">手动录入映射关系</div>
-            <div class="card-body">
-                <div class="form-group">
-                    <label for="fieldInput">字段名称</label>
-                    <input type="text" id="fieldInput" class="form-control" placeholder="请输入字段名">
+        <div id="manual" class="tabcontent">
+            <div class="card mb-4">
+                <div class="card-header">手动录入映射关系</div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="fieldInput">字段名称</label>
+                        <input type="text" id="fieldInput" class="form-control" placeholder="请输入字段名">
+                    </div>
+                    <div id="example" class="hot" style="width: 100%; height: 150px;"></div>
+                    <button type="button" class="btn btn-secondary mt-3" onclick="addRow()">添加行</button>
+                    <button type="button" class="btn btn-primary mt-3" onclick="generateCaseWhen('table')">生成 CASE WHEN 语句</button>
                 </div>
-                <div id="example" class="hot"></div>
-                <button type="button" class="btn btn-secondary mt-3" onclick="addRow()">添加行</button>
-                <button type="button" class="btn btn-primary mt-3" onclick="generateCaseWhen('table')">生成 CASE WHEN 语句</button>
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">上传映射关系表</div>
-            <div class="card-body">
-                <form id="uploadForm">
-                    <div class="form-group">
-                        <label for="uploadFieldInput">字段名称</label>
-                        <input type="text" id="uploadFieldInput" class="form-control" placeholder="请输入字段名">
-                    </div>
-                    <div class="form-group">
-                        <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv">
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="generateCaseWhen('upload')">生成 CASE WHEN 语句</button>
-                </form>
+        <div id="upload" class="tabcontent">
+            <div class="card mb-4">
+                <div class="card-header">上传excel或csv文件(含表头)</div>
+                <div class="card-body">
+                    <form id="uploadForm">
+                        <div class="form-group">
+                            <label for="uploadFieldInput">字段名称</label>
+                            <input type="text" id="uploadFieldInput" class="form-control" placeholder="请输入字段名">
+                        </div>
+                        <div class="form-group">
+                            <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv">
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="generateCaseWhen('upload')">生成 CASE WHEN 语句</button>
+                    </form>
+                </div>
             </div>
         </div>
 
-        <div class="card mb-4">
-            <div class="card-header">手动录入映射关系字符串</div>
-            <div class="card-body">
-                <form id="pasteForm">
-                    <div class="form-group">
-                        <label for="pasteFieldInput">字段名称</label>
-                        <input type="text" id="pasteFieldInput" class="form-control" placeholder="请输入字段名">
-                    </div>
-                    <div class="form-group">
-                        <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg. 苹果:1, 香蕉:2"></textarea>
-                    </div>
-                    <button type="button" class="btn btn-primary" onclick="generateCaseWhen('paste')">生成 CASE WHEN 语句</button>
-                </form>
+        <div id="paste" class="tabcontent">
+            <div class="card mb-4">
+                <div class="card-header">手动录入映射关系字符串</div>
+                <div class="card-body">
+                    <form id="pasteForm">
+                        <div class="form-group">
+                            <label for="pasteFieldInput">字段名称</label>
+                            <input type="text" id="pasteFieldInput" class="form-control" placeholder="请输入字段名">
+                        </div>
+                        <div class="form-group">
+                            <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg. 苹果:1, 香蕉:2"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-primary" onclick="generateCaseWhen('paste')">生成 CASE WHEN 语句</button>
+                    </form>
+                </div>
             </div>
         </div>
 
@@ -82,6 +125,26 @@
     </div>
 
     <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+            if (tabName === 'manual') {
+                hot.render(); // 重新渲染表格
+            }
+        }
+
+
+
+
         const container = document.getElementById('example');
         const hot = new Handsontable(container, {
             data: [['', ''], ['', ''], ['', '']],
@@ -161,6 +224,11 @@
                 copyButton.innerText = '复制回答';
             }, 2000);
         }
+
+        // 默认显示手动录入选项卡
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.tablinks').click();
+        });
     </script>
 </body>
 </html>
