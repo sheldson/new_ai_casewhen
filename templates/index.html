@@ -19,6 +19,10 @@
         <div class="card mb-4">
             <div class="card-header">手动录入映射关系</div>
             <div class="card-body">
+                <div class="form-group">
+                    <label for="fieldInput">字段名称</label>
+                    <input type="text" id="fieldInput" class="form-control" placeholder="Enter field name">
+                </div>
                 <div id="example" class="hot"></div>
                 <button type="button" class="btn btn-secondary mt-3" onclick="addRow()">添加行</button>
                 <button type="button" class="btn btn-primary mt-3" onclick="generateCaseWhen('table')">生成 CASE WHEN 语句</button>
@@ -29,6 +33,10 @@
             <div class="card-header">上传映射关系表</div>
             <div class="card-body">
                 <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="uploadFieldInput">字段名称</label>
+                        <input type="text" id="uploadFieldInput" class="form-control" placeholder="Enter field name">
+                    </div>
                     <div class="form-group">
                         <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv">
                     </div>
@@ -42,7 +50,11 @@
             <div class="card-body">
                 <form id="pasteForm">
                     <div class="form-group">
-                        <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg.苹果:1,香蕉:2"></textarea>
+                        <label for="pasteFieldInput">字段名称</label>
+                        <input type="text" id="pasteFieldInput" class="form-control" placeholder="Enter field name">
+                    </div>
+                    <div class="form-group">
+                        <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg. 苹果:1, 香蕉:2"></textarea>
                     </div>
                     <button type="button" class="btn btn-primary" onclick="generateCaseWhen('paste')">生成 CASE WHEN 语句</button>
                 </form>
@@ -77,13 +89,17 @@
 
         async function generateCaseWhen(type) {
             let input;
+            let fieldName;
             if (type === 'table') {
                 input = hot.getData();
+                fieldName = document.getElementById('fieldInput').value;
             } else if (type === 'upload') {
                 const file = document.getElementById('uploadFile').files[0];
                 input = await readFile(file);
+                fieldName = document.getElementById('uploadFieldInput').value;
             } else if (type === 'paste') {
                 input = document.getElementById('pasteInput').value;
+                fieldName = document.getElementById('pasteFieldInput').value;
             }
 
             const response = await fetch('/generate-case-when', {
@@ -91,7 +107,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ input: input, type: type })
+                body: JSON.stringify({ input: input, field_name: fieldName, type: type })
             });
 
             const reader = response.body.getReader();
@@ -124,4 +140,3 @@
     </script>
 </body>
 </html>
-

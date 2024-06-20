@@ -6,18 +6,20 @@ import os
 import logging
 import re
 
-# Load environment variables from .env file
+# 加载环境变量
 load_dotenv()
 
-# Configure logging
+# 配置日志记录
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 CORS(app)
 
+# 设置 OpenAI API 密钥
 client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+
 def parse_input(input_data, skip_header=False):
-    logging.debug(f"Parsing input data: {input_data}")
+    logging.debug(f"解析输入数据: {input_data}")
     mappings = {}
     if isinstance(input_data, list):
         if skip_header:
@@ -35,34 +37,31 @@ def parse_input(input_data, skip_header=False):
                 if key and value:
                     mappings[key.strip()] = value.strip()
             else:
-                logging.error(f"Line does not contain expected delimiter: {item}")
-    logging.debug(f"Parsed mappings: {mappings}")
+                logging.error(f"行不包含预期的分隔符: {item}")
+    logging.debug(f"解析的映射: {mappings}")
     return mappings
 
-
-def generate_case_when_stream(mappings):
-    prompt = "Generate a SQL CASE WHEN statement for the following mappings:\n"
+def generate_case_when_stream(mappings, field_name):
+    prompt = f"Generate a SQL CASE WHEN statement for the field '{field_name}' with the following mappings:\n"
     for key, value in mappings.items():
         prompt += f"{key}: {value}\n"
-    logging.debug(f"Generated prompt for OpenAI: {prompt}")
+    logging.debug(f"为 OpenAI 生成的提示: {prompt}")
+
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": prompt}
+        ],
+        stream=True,
+    )
 
     def generate():
-        response = client.chat.completions.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a helpful assistant."},
-                {"role": "user", "content": prompt}
-            ],
-            stream=True,
-        )
-        try:
-            for chunk in response:
-                content = chunk.choices[0].delta.content or ""
-                logging.debug(f"Streamed content: {content}")
+        for chunk in response:
+            if chunk.choices[0].delta.content is not None:
+                content = chunk.choices[0].delta.content
+                logging.debug(f"流式内容: {content}")
                 yield content
-        except Exception as e:
-            logging.error(f"Error generating CASE WHEN statement: {e}")
-            yield f"Error generating CASE WHEN statement: {e}"
 
     return generate()
 
@@ -74,15 +73,16 @@ def index():
 def generate_case_when_endpoint():
     input_data = request.json.get('input')
     input_type = request.json.get('type')
-    logging.debug(f"Received input data: {input_data}")
+    field_name = request.json.get('field_name')
+    logging.debug(f"收到的输入数据: {input_data}")
+    logging.debug(f"收到的字段名: {field_name}")
     try:
         skip_header = (input_type == 'upload')  # 仅在上传文件时跳过表头
         mappings = parse_input(input_data, skip_header)
-        return Response(generate_case_when_stream(mappings), content_type='text/plain')
+        return Response(generate_case_when_stream(mappings, field_name), content_type='text/plain')
     except Exception as e:
-        logging.error(f"Error processing request: {e}")
+        logging.error(f"处理请求时出错: {e}")
         return jsonify({'error': str(e)}), 500
-
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)
