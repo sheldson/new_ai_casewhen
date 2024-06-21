@@ -3,5 +3,5 @@ openai
 python-dotenv
 flask_cors
 supabase
-psycopg2-binary
 gunicorn
+psycopg2-binary
