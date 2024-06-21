@@ -142,9 +142,6 @@
             }
         }
 
-
-
-
         const container = document.getElementById('example');
         const hot = new Handsontable(container, {
             data: [['', ''], ['', ''], ['', '']],
@@ -177,12 +174,14 @@
                 fieldName = document.getElementById('pasteFieldInput').value;
             }
 
+            const userId = getUserId();
+
             const response = await fetch('/generate-case-when', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ input: input, field_name: fieldName, type: type })
+                body: JSON.stringify({ input: input, field_name: fieldName, type: type, user_id: userId })
             });
 
             const reader = response.body.getReader();
@@ -225,6 +224,23 @@
             }, 2000);
         }
 
+        function getUserId() {
+            let userId = localStorage.getItem('userId');
+            if (!userId) {
+                userId = generateUUID();
+                localStorage.setItem('userId', userId);
+            }
+            return userId;
+        }
+
+        function generateUUID() {
+            // 生成UUID的替代方法
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
         // 默认显示手动录入选项卡
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('.tablinks').click();
@@ -232,3 +248,4 @@
     </script>
 </body>
 </html>
+
