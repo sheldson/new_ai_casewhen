@@ -2,3 +2,6 @@ flask
 openai
 python-dotenv
 flask_cors
+supabase
+gunicorn
+psycopg2-binary
