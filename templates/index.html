@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- 其他meta标签 -->
     <meta name="google-site-verification" content="Rk_OvfsnT653WA1lLmGFPbIpw_FYuQ2xKVzCHYF0yi4" />
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -54,45 +55,87 @@
             height: 150px;
             overflow: hidden;
         }
+        .output-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 8px solid #3498db;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none; /* 初始状态为隐藏 */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .language-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .language-switcher select {
+            padding: 5px 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+        }
     </style>
 </head>
 <body>
+    <div class="language-switcher">
+        <select id="languageSwitcher" onchange="switchLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+        </select>
+    </div>
     <div class="container mt-5">
-        <h1 class="mb-4">CASE WHEN 语句生成器</h1>
+        <h1 class="mb-4" data-translate="title">CASE WHEN 语句生成器</h1>
         <div class="tab">
-            <button class="tablinks" onclick="openTab(event, 'manual')">在线表格录入</button>
-            <button class="tablinks" onclick="openTab(event, 'upload')">上传映射文件表</button>
-            <button class="tablinks" onclick="openTab(event, 'paste')">直接输入映射关系</button>
+            <button class="tablinks" onclick="openTab(event, 'manual')" data-translate="manual_tab">在线表格录入</button>
+            <button class="tablinks" onclick="openTab(event, 'upload')" data-translate="upload_tab">上传映射文件表</button>
+            <button class="tablinks" onclick="openTab(event, 'paste')" data-translate="paste_tab">直接输入映射关系</button>
         </div>
 
         <div id="manual" class="tabcontent">
             <div class="card mb-4">
-                <div class="card-header">手动录入映射关系</div>
+                <div class="card-header" data-translate="manual_card_header">手动录入映射关系</div>
                 <div class="card-body">
                     <div class="form-group">
-                        <label for="fieldInput">字段名称</label>
-                        <input type="text" id="fieldInput" class="form-control" placeholder="请输入字段名">
+                        <label for="fieldInput" data-translate="field_label">字段名称</label>
+                        <input type="text" id="fieldInput" class="form-control" placeholder="请输入字段名" data-placeholder="field_placeholder">
                     </div>
                     <div id="example" class="hot" style="width: 100%; height: 150px;"></div>
-                    <button type="button" class="btn btn-secondary mt-3" onclick="addRow()">添加行</button>
-                    <button type="button" class="btn btn-primary mt-3" onclick="generateCaseWhen('table')">生成 CASE WHEN 语句</button>
+                    <button type="button" class="btn btn-secondary mt-3" data-translate="add_row_btn" onclick="addRow()">添加行</button>
+                    <button type="button" class="btn btn-primary mt-3" data-translate="generate_btn" onclick="generateCaseWhen('table')">生成 CASE WHEN 语句</button>
                 </div>
             </div>
         </div>
 
         <div id="upload" class="tabcontent">
             <div class="card mb-4">
-                <div class="card-header">上传excel或csv文件(含表头)</div>
+                <div class="card-header" data-translate="upload_card_header">上传excel或csv文件(含表头)</div>
                 <div class="card-body">
                     <form id="uploadForm">
                         <div class="form-group">
-                            <label for="uploadFieldInput">字段名称</label>
-                            <input type="text" id="uploadFieldInput" class="form-control" placeholder="请输入字段名">
+                            <label for="uploadFieldInput" data-translate="upload_field_label">字段名称</label>
+                            <input type="text" id="uploadFieldInput" class="form-control" placeholder="请输入字段名" data-placeholder="field_placeholder">
                         </div>
                         <div class="form-group">
-                            <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv">
+                            <input type="file" id="uploadFile" class="form-control-file" accept=".xlsx,.csv" onchange="updateFileChosen()" style="display: none;">
+                            <button type="button" class="btn btn-secondary" id="customUploadButton" data-translate="choose_file_btn">选择文件</button>
+                            <span id="fileChosen" data-translate="file_not_chosen">未选择任何文件</span>
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="generateCaseWhen('upload')">生成 CASE WHEN 语句</button>
+                        <button type="button" class="btn btn-primary" data-translate="generate_btn" onclick="generateCaseWhen('upload')">生成 CASE WHEN 语句</button>
                     </form>
                 </div>
             </div>
@@ -100,32 +143,130 @@
 
         <div id="paste" class="tabcontent">
             <div class="card mb-4">
-                <div class="card-header">手动录入映射关系字符串</div>
+                <div class="card-header" data-translate="paste_card_header">手动录入映射关系字符串</div>
                 <div class="card-body">
                     <form id="pasteForm">
                         <div class="form-group">
-                            <label for="pasteFieldInput">字段名称</label>
-                            <input type="text" id="pasteFieldInput" class="form-control" placeholder="请输入字段名">
+                            <label for="pasteFieldInput" data-translate="paste_field_label">字段名称</label>
+                            <input type="text" id="pasteFieldInput" class="form-control" placeholder="请输入字段名" data-placeholder="field_placeholder">
                         </div>
                         <div class="form-group">
-                            <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg. 苹果:1, 香蕉:2"></textarea>
+                            <textarea id="pasteInput" class="form-control" rows="5" placeholder="eg. 1:苹果, 2:香蕉" data-placeholder="paste_placeholder"></textarea>
                         </div>
-                        <button type="button" class="btn btn-primary" onclick="generateCaseWhen('paste')">生成 CASE WHEN 语句</button>
+                        <button type="button" class="btn btn-primary" data-translate="generate_btn" onclick="generateCaseWhen('paste')">生成 CASE WHEN 语句</button>
                     </form>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">生成的 CASE WHEN 语句</div>
+            <div class="card-header" data-translate="output_card_header">生成的 CASE WHEN 语句</div>
             <div class="card-body">
-                <textarea id="output" class="form-control" rows="10" readonly></textarea>
-                <button id="copyButton" type="button" class="btn btn-success mt-3" onclick="copyOutput()">复制回答</button>
+                <div class="output-container">
+                    <div id="loader" class="loader"></div>
+                    <textarea id="output" class="form-control" rows="10" readonly></textarea>
+                </div>
+                <button id="copyButton" type="button" class="btn btn-success mt-3" data-translate="copy_btn" onclick="copyOutput()">复制回答</button>
             </div>
         </div>
     </div>
 
     <script>
+        const translations = {
+            en: {
+                title: "SQL Case When Generator",
+                manual_tab: "Manual Entry",
+                upload_tab: "Upload Mapping File",
+                paste_tab: "Direct Input",
+                manual_card_header: "Manually Enter Mapping",
+                upload_card_header: "Upload Excel or CSV File (with headers)",
+                paste_card_header: "Directly Enter Mapping String",
+                field_label: "Field Name",
+                upload_field_label: "Field Name",
+                paste_field_label: "Field Name",
+                add_row_btn: "Add Row",
+                generate_btn: "Generate CASE WHEN Statement",
+                output_card_header: "Generated CASE WHEN Statement",
+                copy_btn: "Copy Output",
+                colHeaders: ['Original Value', 'Mapped Value'],
+                file_not_chosen: "No file chosen",
+                choose_file_btn: "Choose File",
+                field_placeholder: "Enter field name",
+                paste_placeholder: "eg. 1: Apple, 2: Banana"
+            },
+            zh: {
+                title: "CASE WHEN 语句生成器",
+                manual_tab: "在线表格录入",
+                upload_tab: "上传映射文件表",
+                paste_tab: "直接输入映射关系",
+                manual_card_header: "手动录入映射关系",
+                upload_card_header: "上传excel或csv文件(含表头)",
+                paste_card_header: "手动录入映射关系字符串",
+                field_label: "字段名称",
+                upload_field_label: "字段名称",
+                paste_field_label: "字段名称",
+                add_row_btn: "添加行",
+                generate_btn: "生成 CASE WHEN 语句",
+                output_card_header: "生成的 CASE WHEN 语句",
+                copy_btn: "复制回答",
+                colHeaders: ['映射前的值', '映射后的值'],
+                file_not_chosen: "未选择任何文件",
+                choose_file_btn: "选择文件",
+                field_placeholder: "请输入字段名",
+                paste_placeholder: "eg. 1:苹果, 2:香蕉"
+            }
+        };
+    
+        function switchLanguage(lang) {
+            const elements = document.querySelectorAll("[data-translate]");
+            elements.forEach(element => {
+                const key = element.getAttribute("data-translate");
+                element.textContent = translations[lang][key];
+            });
+    
+            // 更新Handsontable列标题
+            hot.updateSettings({
+                colHeaders: translations[lang].colHeaders
+            });
+    
+            // 更新文件选择按钮文本
+            document.getElementById('customUploadButton').textContent = translations[lang].choose_file_btn;
+    
+            // 更新文件选择状态文本
+            const fileInput = document.getElementById('uploadFile');
+            const fileChosen = document.getElementById('fileChosen');
+            fileChosen.textContent = fileInput.files.length > 0 ? fileInput.files[0].name : translations[lang].file_not_chosen;
+    
+            // 更新输入框的placeholder
+            const placeholders = document.querySelectorAll("[data-placeholder]");
+            placeholders.forEach(placeholder => {
+                const key = placeholder.getAttribute("data-placeholder");
+                placeholder.placeholder = translations[lang][key];
+            });
+        }
+    
+        function updateFileChosen() {
+            const fileInput = document.getElementById('uploadFile');
+            const fileChosen = document.getElementById('fileChosen');
+            fileChosen.textContent = fileInput.files.length > 0 ? fileInput.files[0].name : translations[document.getElementById('languageSwitcher').value].file_not_chosen;
+        }
+    
+        document.addEventListener("DOMContentLoaded", () => {
+            // 检测用户的浏览器语言
+            const userLang = navigator.language || navigator.userLanguage;
+            const defaultLang = userLang.includes('zh') ? 'zh' : 'en';
+            document.getElementById('languageSwitcher').value = defaultLang;
+    
+            // 设置页面语言
+            switchLanguage(defaultLang);
+    
+            document.querySelector('.tablinks').click();
+    
+            document.getElementById('customUploadButton').addEventListener('click', () => {
+                document.getElementById('uploadFile').click();
+            });
+        });
+    
         function openTab(evt, tabName) {
             var i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("tabcontent");
@@ -142,11 +283,11 @@
                 hot.render(); // 重新渲染表格
             }
         }
-
+    
         const container = document.getElementById('example');
         const hot = new Handsontable(container, {
             data: [['', ''], ['', ''], ['', '']],
-            colHeaders: ['映射前的值', '映射后的值'],
+            colHeaders: translations['en'].colHeaders,
             rowHeaders: true,
             minSpareRows: 1,
             contextMenu: true,
@@ -155,11 +296,11 @@
                 { type: 'text' }
             ]
         });
-
+    
         function addRow() {
             hot.alter('insert_row', hot.countRows());
         }
-
+    
         async function generateCaseWhen(type) {
             let input;
             let fieldName;
@@ -174,9 +315,13 @@
                 input = document.getElementById('pasteInput').value;
                 fieldName = document.getElementById('pasteFieldInput').value;
             }
-
+    
             const userId = getUserId();
-
+    
+            // 显示加载动画
+            document.getElementById('loader').style.display = 'block';
+            document.getElementById('output').style.display = 'none';
+    
             const response = await fetch('/generate-case-when', {
                 method: 'POST',
                 headers: {
@@ -184,19 +329,25 @@
                 },
                 body: JSON.stringify({ input: input, field_name: fieldName, type: type, user_id: userId })
             });
-
+    
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
-            document.getElementById('output').value = '';  // Clear the output field
-
+            let outputText = '';
+    
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
                 const chunk = decoder.decode(value, { stream: true });
-                document.getElementById('output').value += chunk;
+                outputText += chunk;
             }
+    
+            document.getElementById('output').value = outputText;
+    
+            // 隐藏加载动画并显示输出框
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('output').style.display = 'block';
         }
-
+    
         function readFile(file) {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -212,7 +363,7 @@
                 reader.readAsArrayBuffer(file);
             });
         }
-
+    
         function copyOutput() {
             const output = document.getElementById('output');
             output.select();
@@ -224,7 +375,7 @@
                 copyButton.innerText = '复制回答';
             }, 2000);
         }
-
+    
         function getUserId() {
             let userId = localStorage.getItem('userId');
             if (!userId) {
@@ -233,7 +384,7 @@
             }
             return userId;
         }
-
+    
         function generateUUID() {
             // 生成UUID的替代方法
             return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -241,12 +392,12 @@
                 return v.toString(16);
             });
         }
-
+    
         // 默认显示手动录入选项卡
         document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('.tablinks').click();
         });
     </script>
+    
 </body>
 </html>
-

@@ -56,7 +56,7 @@ def parse_input(input_data, skip_header=False):
     return mappings, input_fields
 
 def generate_case_when_stream(field_name, mappings):
-    prompt = f"Generate a SQL CASE WHEN statement for the field '{field_name}' with the following mappings:\n"
+    prompt = f"Generate a SQL CASE WHEN statement for the field '{field_name}' with the following mappings:\n. Only return SQL Statement which between three single quote"
     for key, value in mappings.items():
         prompt += f"{key}: {value}\n"
     logging.debug(f"Generated prompt for OpenAI: {prompt}")
