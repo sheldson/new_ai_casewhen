@@ -43,7 +43,6 @@ def parse_input(input_data, skip_header=False):
                 key, value = row
                 if key and value:
                     mappings[str(key).strip()] = str(value).strip()
-        input_fields = ["field_name"]
     else:
         input_data = re.split(r'[，,]', input_data)
         for item in input_data:
@@ -51,12 +50,11 @@ def parse_input(input_data, skip_header=False):
                 key, value = re.split(r'[:：\s]', item, 1)
                 if key and value:
                     mappings[key.strip()] = value.strip()
-        input_fields = ["field_name"]
     logging.debug(f"Parsed mappings: {mappings}")
-    return mappings, input_fields
+    return mappings
 
 def generate_case_when_stream(field_name, mappings):
-    prompt = f"Generate a SQL CASE WHEN statement for the field '{field_name}' with the following mappings:\n. Only return SQL Statement which between three single quote"
+    prompt = f"Generate a SQL CASE WHEN statement for the field '{field_name}' with the following mappings:\n"
     for key, value in mappings.items():
         prompt += f"{key}: {value}\n"
     logging.debug(f"Generated prompt for OpenAI: {prompt}")
@@ -95,7 +93,7 @@ def generate_case_when_endpoint():
     logging.debug(f"Received input data: {input_data}")
     try:
         skip_header = (input_type == 'upload')  # 仅在上传文件时跳过表头
-        mappings, input_fields = parse_input(input_data, skip_header)
+        mappings = parse_input(input_data, skip_header)
         
         # 先插入一条记录
         data = {
